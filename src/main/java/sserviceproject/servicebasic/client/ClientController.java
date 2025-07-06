@@ -1,15 +1,12 @@
 package sserviceproject.servicebasic.client;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import sserviceproject.servicebasic.config.CommonApiResponses;
 
 import java.util.List;
 
@@ -25,18 +22,14 @@ public class ClientController {
     }
 
     @Operation(summary = "Obtiene todos los clientes")
-    @ApiResponse(responseCode = "200", description = "Listado de clientes")
+    @CommonApiResponses
     @GetMapping
     public ResponseEntity<List<Client>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
     }
 
     @Operation(summary = "Obtiene un cliente por ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente encontrado",
-                    content = @Content(schema = @Schema(implementation = Client.class))),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
-    })
+    @CommonApiResponses
     @GetMapping("/{id}")
     public ResponseEntity<Client> getClientById(@PathVariable Long id) {
         return clientService.getClientById(id)
@@ -45,11 +38,7 @@ public class ClientController {
     }
 
     @Operation(summary = "Crea un nuevo cliente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Cliente creado",
-                    content = @Content(schema = @Schema(implementation = Client.class))),
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida")
-    })
+    @CommonApiResponses
     @PostMapping
     public ResponseEntity<Client> createClient(@Valid @RequestBody Client client) {
         Client created = clientService.saveClient(client);
@@ -57,12 +46,7 @@ public class ClientController {
     }
 
     @Operation(summary = "Actualiza un cliente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente actualizado",
-                    content = @Content(schema = @Schema(implementation = Client.class))),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida")
-    })
+    @CommonApiResponses
     @PutMapping("/{id}")
     public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody Client clientDetails) {
         return clientService.getClientById(id)
@@ -76,10 +60,7 @@ public class ClientController {
     }
 
     @Operation(summary = "Elimina un cliente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente eliminado"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
-    })
+    @CommonApiResponses
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteClient(@PathVariable Long id) {
         return clientService.getClientById(id)
