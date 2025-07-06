@@ -1,12 +1,21 @@
 package sserviceproject.servicebasic.client;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/clients")
+@Validated
 public class ClientController {
 
     private final ClientService clientService;
@@ -15,25 +24,47 @@ public class ClientController {
         this.clientService = clientService;
     }
 
+    @Operation(summary = "Obtiene todos los clientes")
+    @ApiResponse(responseCode = "200", description = "Listado de clientes")
     @GetMapping
-    public List<Client> getAllClients() {
-        return clientService.getAllClients();
+    public ResponseEntity<List<Client>> getAllClients() {
+        return ResponseEntity.ok(clientService.getAllClients());
     }
 
+    @Operation(summary = "Obtiene un cliente por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cliente encontrado",
+                    content = @Content(schema = @Schema(implementation = Client.class))),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<Client> getClientById(@PathVariable Long id) {
         return clientService.getClientById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @Operation(summary = "Crea un nuevo cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Cliente creado",
+                    content = @Content(schema = @Schema(implementation = Client.class))),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida")
+    })
     @PostMapping
-    public Client createClient(@RequestBody Client client) {
-        return clientService.saveClient(client);
+    public ResponseEntity<Client> createClient(@Valid @RequestBody Client client) {
+        Client created = clientService.saveClient(client);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @Operation(summary = "Actualiza un cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cliente actualizado",
+                    content = @Content(schema = @Schema(implementation = Client.class))),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client clientDetails) {
+    public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody Client clientDetails) {
         return clientService.getClientById(id)
                 .map(client -> {
                     client.setName(clientDetails.getName());
@@ -41,16 +72,21 @@ public class ClientController {
                     Client updated = clientService.saveClient(client);
                     return ResponseEntity.ok(updated);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @Operation(summary = "Elimina un cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cliente eliminado"),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+    public ResponseEntity<Object> deleteClient(@PathVariable Long id) {
         return clientService.getClientById(id)
                 .map(client -> {
                     clientService.deleteClient(id);
-                    return ResponseEntity.ok().<Void>build();
+                    return ResponseEntity.ok().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 }
